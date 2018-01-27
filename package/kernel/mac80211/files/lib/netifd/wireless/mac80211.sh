@@ -327,6 +327,21 @@ EOF
 }
 
 mac80211_generate_mac() {
+#virtual interface's MAC address from flash -start  
+	[ "$macidx" -gt 0 ] && {
+		local phy_idx=${1##*y}
+		local mib_name="HW_WLAN$phy_idx""_WLAN_ADDR$macidx"
+		local mac_str="$(flash get $mib_name)"
+		local mac="${mac_str##*=}"
+		[ "$mac" != "000000000000" ] && {
+			local mac_format=${mac:0:2}:${mac:2:2}:${mac:4:2}:${mac:6:2}:${mac:8:2}:${mac:10:2}
+			printf $mac_format
+			return
+		}
+	}
+#virtual interface's MAC address from flash -end
+
+#original flow -start
 	local phy="$1"
 	local id="${macidx:-0}"
 
@@ -360,6 +375,7 @@ mac80211_generate_mac() {
 		$1 $2 $3 $4 \
 		$(( (0x$5 + $off2) % 0x100 )) \
 		$(( (0x$6 + $id) % 0x100 ))
+#original flow -end
 }
 
 find_phy() {
@@ -384,13 +400,140 @@ mac80211_check_ap() {
 	has_ap=1
 }
 
+set_rtk_wds_mib() {
+	
+	local wlname="$1"
+	
+	json_select_config
+	
+	json_get_vars \
+	rtk_wds rtk_wds_num rtk_wds_privacy rtk_wds_wepkey rtk_wds_passphrase \
+	rtk_wds_macaddr0 rtk_wds_macaddr1 rtk_wds_macaddr2 rtk_wds_macaddr3 \
+	rtk_wds_macaddr4 rtk_wds_macaddr5 rtk_wds_macaddr6 rtk_wds_macaddr7
+
+	echo "wds=$rtk_wds  wds_num=$rtk_wds_num  wds_mac=$rtk_wds_macaddr0" > /etc/debug_mib
+	
+	iwpriv "$wlname" set_mib wds_enable=0
+	[ -n "$rtk_wds" ] && iwpriv "$wlname" set_mib wds_enable="$rtk_wds"
+	
+	iwpriv "$wlname" set_mib wds_num=0
+	#[ -n "$rtk_wds_num" ] && iwpriv "$wlname" set_mib wds_num="$rtk_wds_num"
+
+	iwpriv "$wlname" set_mib rtk_wds_privacy=0
+	[ -n "$rtk_wds_privacy" ] && iwpriv "$wlname" set_mib wds_encrypt="$rtk_wds_privacy"
+
+	iwpriv "$wlname" set_mib rtk_wds_wepkey=0
+	[ -n "$rtk_wds_wepkey" ] && iwpriv "$wlname" set_mib wds_wepkey="$rtk_wds_wepkey"
+
+	iwpriv "$wlname" set_mib rtk_wds_passphrase=0
+	[ -n "$rtk_wds_passphrase" ] && iwpriv "$wlname" set_mib wds_passphrase="$rtk_wds_passphrase"
+
+	[ -n "$rtk_wds_macaddr0" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr0"
+	}
+	
+	[ -n "$rtk_wds_macaddr1" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr1"
+	}
+	
+	[ -n "$rtk_wds_macaddr2" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr2"
+	}
+	
+	[ -n "$rtk_wds_macaddr3" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr3"
+	}
+	
+	[ -n "$rtk_wds_macaddr4" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr4"
+	}
+	
+	[ -n "$rtk_wds_macaddr5" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr5"
+	}
+	
+	[ -n "$rtk_wds_macaddr6" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr6"
+	}
+	
+	[ -n "$rtk_wds_macaddr7" ] && {
+		iwpriv "$wlname" set_mib wds_add="$rtk_wds_macaddr7"
+	}
+}
+
+enable_rtk_wds_priv() {
+	
+	local wlname="$1"
+
+	json_select config
+
+	json_get_vars \
+	rtk_wds rtk_wds_num \
+	rtk_wds_macaddr0 rtk_wds_macaddr1 rtk_wds_macaddr2 rtk_wds_macaddr3 \
+	rtk_wds_macaddr4 rtk_wds_macaddr5 rtk_wds_macaddr6 rtk_wds_macaddr7
+
+	echo "wds=$rtk_wds  wds_num=$rtk_wds_num  wds_mac=$rtk_wds_macaddr0" > /etc/debug_enable
+	
+	[ -n "$rtk_wds_macaddr0" ] && {	
+		ifconfig "$wlname"-wds0 up
+		brctl addif br-lan "$wlname"-wds0
+	}
+
+	[ -n "$rtk_wds_macaddr1" ] && {
+		ifconfig "$wlname"-wds1 up
+		brctl addif br-lan "$wlname"-wds1
+	}
+
+	[ -n "$rtk_wds_macaddr2" ] && {	
+		ifconfig "$wlname"-wds2 up
+		brctl addif br-lan "$wlname"-wds2
+	}
+
+	[ -n "$rtk_wds_macaddr3" ] && {
+		ifconfig "$wlname"-wds3 up
+		brctl addif br-lan "$wlname"-wds3
+	}
+	
+	[ -n "$rtk_wds_macaddr4" ] && {	
+		ifconfig "$wlname"-wds4 up
+		brctl addif br-lan "$wlname"-wds4
+	}
+
+	[ -n "$rtk_wds_macaddr5" ] && {
+		ifconfig "$wlname"-wds5 up
+		brctl addif br-lan "$wlname"-wds5
+	}
+
+	[ -n "$rtk_wds_macaddr6" ] && {	
+		ifconfig "$wlname"-wds6 up
+		brctl addif br-lan "$wlname"-wds6
+	}
+
+	[ -n "$rtk_wds_macaddr7" ] && {
+		ifconfig "$wlname"-wds7 up
+		brctl addif br-lan "$wlname"-wds7
+	}
+
+}
+
 mac80211_prepare_vif() {
 	json_select config
 
-	json_get_vars ifname mode ssid wds powersave macaddr
+	json_get_vars ifname mode ssid wds powersave macaddr rtk_wds
 
 	[ -n "$ifname" ] || ifname="wlan${phy#phy}${if_idx:+-$if_idx}"
 	if_idx=$((${if_idx:-0} + 1))
+
+	if [ "$rtk_wds" -gt 0 ]; then
+		case "$ifname" in
+			wlan0)
+				set_rtk_wds_mib "$ifname"
+		;;
+			wlan1)
+				set_rtk_wds_mib "$ifname"
+		;;
+		esac
+	fi
 
 	set_default wds 0
 	set_default powersave 0
@@ -475,6 +618,9 @@ mac80211_setup_supplicant() {
 mac80211_setup_adhoc() {
 	json_get_vars bssid ssid key mcast_rate
 
+	local freq_center 
+	local chan_width
+
 	keyspec=
 	[ "$auth_type" == "wep" ] && {
 		set_default key 1
@@ -505,7 +651,32 @@ mac80211_setup_adhoc() {
 	mcval=
 	[ -n "$mcast_rate" ] && hostapd_add_rate mcval "$mcast_rate"
 
-	iw dev "$ifname" ibss join "$ssid" $freq $htmode fixed-freq $bssid \
+	case "$htmode" in 
+		VHT20|HT20) chan_width=20;;
+		HT40|VHT40)
+			case "$channel" in 
+				1|2|3|4|5|6|7) freq_center=$(($freq + 10));;
+				8|9|10|11) freq_center=$(($freq - 10));;
+				36|44|52|60|100|108|116|124|132|140|149|157|165|173) freq_center=$(($freq+10));;
+				40|48|56|64|104|112|120|128|136|144|153|161|169|177) freq_center=$(($freq-10));;
+			esac
+			chan_width=40
+		;;
+		VHT80)
+			case "$channel" in
+				36|40|44|48) freq_center=5210;;
+				52|56|60|64) freq_center=5290;;
+				100|104|108|112) freq_center=5530;;
+				116|120|124|138) freq_center=5610;;
+				132|136|140|144) freq_center=5690;;
+				149|153|157|161) freq_center=5775;;
+				165|169|173|177) freq_center=5855;;
+			esac
+			chan_width=80
+	esac
+
+	iw dev "$ifname" set freq $freq $chan_width $freq_center
+	iw dev "$ifname" ibss join "$ssid" $freq $bssid \
 		${beacon_int:+beacon-interval $beacon_int} \
 		${brstr:+basic-rates $brstr} \
 		${mcval:+mcast-rate $mcval} \
@@ -522,7 +693,7 @@ mac80211_setup_vif() {
 
 	json_select config
 	json_get_vars mode
-	json_get_var vif_txpower txpower
+	json_get_var vif_txpower txpower rtk_wds
 
 	ifconfig "$ifname" up || {
 		wireless_setup_vif_failed IFUP_ERROR
@@ -530,8 +701,20 @@ mac80211_setup_vif() {
 		return
 	}
 
+	if [ "$rtk_wds" -gt 0 ]; then
+		case "$ifname" in
+			wlan0)
+				enable_rtk_wds_priv "$ifname"
+			;;
+			wlan1)
+				enable_rtk_wds_priv "$ifname"
+			;;
+		esac
+	fi
+
+
 	set_default vif_txpower "$txpower"
-	[ -z "$vif_txpower" ] || iw dev "$ifname" set txpower fixed "${vif_txpower%%.*}00"
+	[ -z "$txpower" ] || iw dev "$ifname" set txpower fixed "${txpower%%.*}00"
 
 	case "$mode" in
 		mesh)
@@ -596,7 +779,7 @@ drv_mac80211_setup() {
 		country chanbw distance \
 		txpower antenna_gain \
 		rxantenna txantenna \
-		frag rts beacon_int
+		frag rts beacon_int htmode
 	json_get_values basic_rate_list basic_rate
 	json_select ..
 
@@ -650,8 +833,8 @@ drv_mac80211_setup() {
 	rm -f "$hostapd_conf_file"
 	[ -n "$has_ap" ] && mac80211_hostapd_setup_base "$phy"
 
-	for_each_interface "sta adhoc mesh monitor" mac80211_prepare_vif
 	for_each_interface "ap" mac80211_prepare_vif
+	for_each_interface "sta adhoc mesh monitor" mac80211_prepare_vif
 
 	[ -n "$hostapd_ctrl" ] && {
 		/usr/sbin/hostapd -P /var/run/wifi-$phy.pid -B "$hostapd_conf_file"

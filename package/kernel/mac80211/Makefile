@@ -31,7 +31,7 @@ PKG_DRIVERS = \
 	mwl8k mwifiex-pcie net-hermes net-hermes-pci net-hermes-plx net-hermes-pcmcia \
 	iwl-legacy iwl3945 iwl4965 iwlagn wlcore wl12xx wl18xx lib80211 \
 	rtlwifi rtlwifi-pci rtlwifi-usb rtl8192c-common rtl8192ce rtl8192se \
-	rtl8192de rtl8192cu
+	rtl8192de rtl8192cu rtl8192cd
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_kmod-mac80211 \
@@ -145,6 +145,22 @@ define Download/ath10k-firmware
   #MIRROR_MD5SUM:=$(PKG_ATH10K_LINUX_FIRMWARE_MIRROR_MD5SUM)
 endef
 $(eval $(call Download,ath10k-firmware))
+
+PKG_RTL8192CD_NAME:=rtl8192cd
+PKG_RTL8192CD_VERSION:=3.10
+PKG_RTL8192CD_SOURCE:=$(PKG_RTL8192CD_NAME)-$(PKG_RTL8192CD_VERSION)_rlx.tar.bz2
+
+define KernelPackage/rtl8192cd
+  $(call KernelPackage/mac80211/Default)
+  TITLE:=Realtek 8192cd wireless module support
+  DEPENDS+= @(TARGET_realtek||TARGET_rtkmips||TARGET_rtkmipsel) +kmod-mac80211 +@DRIVER_11N_SUPPORT
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/rtl8192cd/rtl8192cd.ko
+  AUTOLOAD:=$(call AutoProbe,rtl8192cd)
+endef
+
+define KernelPackage/rtl8192cd/description
+ This module adds support for Realtek rtl8192cd wireless adapters
+endef
 
 # Prism54 drivers
 P54PCIFW:=2.13.12.0.arm
@@ -1626,6 +1642,7 @@ config-$(call config_package,rtl8192se) += RTL8192SE
 config-$(call config_package,rtl8192de) += RTL8192DE
 config-$(call config_package,rtl8192cu) += RTL8192CU
 config-$(CONFIG_PACKAGE_RTLWIFI_DEBUG) += RTLWIFI_DEBUG
+config-$(call config_package,rtl8192cd) += RTL8192CD
 
 config-$(CONFIG_LEDS_TRIGGERS) += MAC80211_LEDS B43_LEDS B43LEGACY_LEDS
 
@@ -1643,6 +1660,19 @@ ifneq ($(findstring c,$(OPENWRT_VERBOSE)),)
   MAKE_OPTS += V=1
 endif
 
+ifeq ($(CONFIG_PACKAGE_kmod-rtl8192cd),y)
+  MAKE_OPTS += "EXTRA_CFLAGS += -I$(PKG_BUILD_DIR)/drivers/net/wireless/rtl8192cd \
+				-I$(PKG_BUILD_DIR)/drivers/net/wireless/rtl8192cd/phydm \
+				-I$(PKG_BUILD_DIR)/drivers/net/wireless/rtl8192cd/WlanHAL \
+				-I$(PKG_BUILD_DIR)/drivers/net/wireless/rtl8192cd/WlanHAL/RTL88XX \
+				-I$(PKG_BUILD_DIR)/drivers/net/wireless/rtl8192cd/WlanHAL/HalMac88XX \
+				-DDM_ODM_SUPPORT_TYPE=0x1"
+endif
+ifeq ($(CONFIG_TARGET_rtkmipsel_rtl8197f),y)
+MAKE_OPTS += "EXTRA_CFLAGS += -I$(PKG_BUILD_DIR)/drivers/net/wireless/rtl8192cd/efuse_97f"
+endif
+
+
 define ConfigVars
 $(subst $(space),,$(foreach opt,$(config-$(1)),CPTCFG_$(opt)=$(1)
 ))
@@ -1657,6 +1687,10 @@ define Build/Prepare
 	rm -rf $(PKG_BUILD_DIR)
 	mkdir -p $(PKG_BUILD_DIR)
 	$(PKG_UNPACK)
+#rtk workaround
+	mkdir -p $(PKG_BUILD_DIR)/drivers/net/wireless
+	$(CP) -r $(PLATFORM_DIR)/files/drivers/net/wireless/rtl8192cd $(PKG_BUILD_DIR)/drivers/net/wireless
+#--------------
 	$(Build/Patch)
 	$(TAR) -C $(PKG_BUILD_DIR) -xzf $(DL_DIR)/$(IPW2100_NAME)-$(IPW2100_VERSION).tgz
 	$(TAR) -C $(PKG_BUILD_DIR) -xzf $(DL_DIR)/$(IPW2200_NAME)-$(IPW2200_VERSION).tgz
@@ -2040,3 +2074,4 @@ $(eval $(call KernelPackage,net-hermes-pcmcia))
 $(eval $(call KernelPackage,wlcore))
 $(eval $(call KernelPackage,wl12xx))
 $(eval $(call KernelPackage,wl18xx))
+$(eval $(call KernelPackage,rtl8192cd))

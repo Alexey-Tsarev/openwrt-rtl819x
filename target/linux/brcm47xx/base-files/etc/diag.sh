@@ -1,38 +1,28 @@
 #!/bin/sh
 # Copyright (C) 2006 OpenWrt.org
 
-. /lib/functions/leds.sh
-
-get_status_led() {
-	status_led_file=$(find /sys/class/leds/ -name "*power*" |head -n1)
-	if [ ! -f $status_led_file ]; then
-		status_led=$(basename $status_led_file)
-		return
-	fi;
-	status_led_file=$(find /sys/class/leds/ -name "*diag*" |head -n1)
-	if [ ! -f $status_led_file ]; then
-		status_led=$(basename $status_led_file)
-		return
-	fi;
-	status_led_file=$(find /sys/class/leds/ -name "*wps*" |head -n1)
-	if [ ! -f $status_led_file ]; then
-		status_led=$(basename $status_led_file)
-		return
-	fi;
+set_led() {
+	local led="$1"
+	local state="$2"
+	[ -f "/proc/diag/led/$1" ] && echo "$state" > "/proc/diag/led/$1"
 }
 
 set_state() {
-	get_status_led
-
 	case "$1" in
-	preinit)
-		status_led_blink_preinit
+		preinit)
+			set_led dmz 1
+			set_led diag 1
+			set_led power 0
 		;;
-	failsafe)
-		status_led_blink_failsafe
+		failsafe)
+			set_led diag f
+			set_led power f
+			set_led dmz f
 		;;
-	done)
-		status_led_on
+		done)
+			set_led dmz 0
+			set_led diag 0
+			set_led power 1
 		;;
 	esac
 }

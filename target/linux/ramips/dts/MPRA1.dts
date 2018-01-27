@@ -41,15 +41,12 @@
 				};
 			};
 		};
-		gpio1: gpio@660 {
-			status = "okay";
-		};
 	};
 
 	pinctrl {
 		state_default: pinctrl0 {
 			gpio {
-				ralink,group = "i2c", "jtag", "rgmii", "mdio", "uartf", "led";
+				ralink,group = "i2c", "jtag", "rgmii", "mdio", "uartf";
 				ralink,function = "gpio";
 			};
 		};
@@ -63,10 +60,6 @@
 		ralink,portmap = <0x2f>;
 	};
 
-	wmac@10180000 {
-		ralink,mtd-eeprom = <&factory 0>;
-	};
-
 	ehci@101c0000 {
 		status = "okay";
 	};
@@ -78,11 +71,11 @@
 	gpio-leds {
 		compatible = "gpio-leds";
 		system {
-			label = "hame:blue:system";
+			label = "mpr-a1:blue:system";
 			gpios = <&gpio0 20 1>;
 		};
 		power {
-			label = "hame:red:power";
+			label = "mpr-a1:red:power";
 			gpios = <&gpio0 17 1>;
 		};
 	};

@@ -5,15 +5,15 @@
 # See /LICENSE for more information.
 #
 
-define Profile/HW550-3G
+define Profile/HW5503G
 	NAME:=Aztech HW550-3G
 	PACKAGES:=\
 		kmod-usb-core kmod-usb-rt305x-dwc_otg \
 		kmod-ledtrig-usbdev
 endef
 
-define Profile/HW550-3G/Description
+define Profile/HW5503G/Description
 	Package set for Aztech HW550-3G
 endef
 
-$(eval $(call Profile,HW550-3G))
+$(eval $(call Profile,HW5503G))

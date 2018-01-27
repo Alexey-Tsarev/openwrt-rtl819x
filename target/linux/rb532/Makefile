@@ -9,9 +9,9 @@ include $(TOPDIR)/rules.mk
 ARCH:=mipsel
 BOARD:=rb532
 BOARDNAME:=Mikrotik RouterBoard 532
-FEATURES:=pci targz
+FEATURES:=pci targz broken
 
-LINUX_VERSION:=3.10.49
+LINUX_VERSION:=3.10.24
 
 include $(INCLUDE_DIR)/target.mk
 DEFAULT_PACKAGES += wpad-mini kmod-madwifi kmod-input-rb532

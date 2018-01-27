@@ -101,6 +101,7 @@ define Package/openvpn-$(BUILD_VARIANT)/install
 		$(1)/etc/init.d \
 		$(1)/etc/config \
 		$(1)/etc/openvpn \
+		$(1)/usr/lib/lua/luci/model/cbi/admin_network \
 		$(1)/lib/upgrade/keep.d
 
 	$(INSTALL_BIN) \
@@ -110,6 +111,12 @@ define Package/openvpn-$(BUILD_VARIANT)/install
 	$(INSTALL_BIN) \
 		files/openvpn.init \
 		$(1)/etc/init.d/openvpn
+
+	$(INSTALL_BIN) files/openvpn_start.sh $(1)/usr/sbin/
+	$(INSTALL_BIN) files/openvpn_server_start.sh $(1)/usr/sbin/
+	$(INSTALL_BIN) files/openvpn_client_start.sh $(1)/usr/sbin/
+	$(INSTALL_DATA) files/secret.key $(1)/etc/openvpn
+	$(INSTALL_DATA) files/openvpn.lua $(1)/usr/lib/lua/luci/model/cbi/admin_network/
 
 	$(INSTALL_CONF) files/openvpn.config \
 		$(1)/etc/config/openvpn

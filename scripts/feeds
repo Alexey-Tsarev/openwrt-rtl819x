@@ -480,7 +480,10 @@ sub install {
 	if ($opts{d} and $opts{d} =~ /^[ymn]$/) {
 		refresh_config($opts{d});
 	}
-
+        
+	# realtek's workaround to run rtk_init.sh patch when feeds install
+	system("./rtk_scripts/rtk_init.sh patch");
+	
 	return $ret;
 }
 

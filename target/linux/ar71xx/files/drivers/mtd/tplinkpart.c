@@ -188,9 +188,7 @@ static struct mtd_part_parser tplink_parser = {
 
 static int __init tplink_parser_init(void)
 {
-	register_mtd_parser(&tplink_parser);
-
-	return 0;
+	return register_mtd_parser(&tplink_parser);
 }
 
 module_init(tplink_parser_init);

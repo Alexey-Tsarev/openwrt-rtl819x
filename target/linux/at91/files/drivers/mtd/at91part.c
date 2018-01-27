@@ -110,9 +110,7 @@ static struct mtd_part_parser at91_parser = {
 
 static int __init at91_parser_init(void)
 {
-	register_mtd_parser(&at91_parser);
-
-	return 0;
+	return register_mtd_parser(&at91_parser);
 }
 
 module_init(at91_parser_init);

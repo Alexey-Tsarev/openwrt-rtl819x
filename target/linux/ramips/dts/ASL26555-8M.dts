@@ -26,8 +26,8 @@
 					reg = <0x0 0x30000>;
 					read-only;
 				};
-				ubootenv: partition@30000 {
-					label = "uboot-env";
+				factory: partition@30000 {
+					label = "factory";
 					reg = <0x30000 0x10000>;
 					read-only;
 				};
@@ -64,15 +64,11 @@
 	};
 
 	ethernet@10100000 {
-		mtd-mac-address = <&ubootenv 0x4004>;
+		mtd-mac-address = <&factory 0x4004>;
 	};
 
 	esw@10110000 {
 		ralink,portmap = <0x1e>;
-	};
-
-	wmac@10180000 {
-		ralink,mtd-eeprom = <&ubootenv 0x4000>;
 	};
 
 	otg@101c0000 {

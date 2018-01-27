@@ -19,7 +19,7 @@ Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
 
 --- a/drivers/net/can/flexcan.c
 +++ b/drivers/net/can/flexcan.c
-@@ -1021,7 +1021,6 @@ static int flexcan_probe(struct platform
+@@ -1025,7 +1025,6 @@ static int flexcan_probe(struct platform
  			err = PTR_ERR(clk_ipg);
  			goto failed_clock;
  		}
@@ -27,7 +27,7 @@ Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
  
  		clk_per = devm_clk_get(&pdev->dev, "per");
  		if (IS_ERR(clk_per)) {
-@@ -1029,6 +1028,7 @@ static int flexcan_probe(struct platform
+@@ -1033,6 +1032,7 @@ static int flexcan_probe(struct platform
  			err = PTR_ERR(clk_per);
  			goto failed_clock;
  		}
