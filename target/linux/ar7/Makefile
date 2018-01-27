@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 ARCH:=mipsel
 BOARD:=ar7
 BOARDNAME:=TI AR7
-FEATURES:=squashfs atm low_mem
+FEATURES:=squashfs atm
 MAINTAINER:=Florian Fainelli <florian@openwrt.org>
 SUBTARGETS:=generic ac49x
 
-KERNEL_PATCHVER:=3.10
+LINUX_VERSION:=3.10.24
 
 include $(INCLUDE_DIR)/target.mk
 

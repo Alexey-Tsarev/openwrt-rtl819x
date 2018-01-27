@@ -210,6 +210,10 @@ fi
 
 run_hooks "" $sysupgrade_pre_upgrade
 
+#rtk add,close wifi  for stable firmware upgrade 
+ifconfig wlan0 down
+ifconfig wlan1 down
+############################################
 ubus call system upgrade
 touch /tmp/sysupgrade
 

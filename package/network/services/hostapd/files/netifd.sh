@@ -437,11 +437,11 @@ wpa_supplicant_prepare_interface() {
 				[ "$wds" = 1 ] || fail=1
 			;;
 		esac
-
-		[ -n "$fail" ] && {
-			wireless_setup_vif_failed BRIDGE_NOT_ALLOWED
-			return 1
-		}
+		#marked for realtek propietary
+		#[ -n "$fail" ] && {
+		#	wireless_setup_vif_failed BRIDGE_NOT_ALLOWED
+		#	return 1
+		#}
 	}
 
 	local ap_scan=
@@ -503,6 +503,14 @@ wpa_supplicant_add_network() {
 			local wep_keyidx=0
 			hostapd_append_wep_key network_data
 			append network_data "wep_tx_keyidx=$wep_keyidx" "$N$T"
+			local auth_alg=$((($auth_mode_shared << 1) | $auth_mode_open))			
+			if [ $auth_alg -eq 2 ]; then
+				append network_data "auth_alg=SHARED" "$N$T"
+			elif [ $auth_alg -eq 1 ]; then
+				append network_data "auth_alg=OPEN" "$N$T"
+			else
+				echo "auth_alg=$auth_alg"
+			fi
 		;;
 		psk)
 			local passphrase

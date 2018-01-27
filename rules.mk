@@ -97,7 +97,7 @@ else
   TOOLCHAIN_DIR_NAME:=toolchain-$(GNU_TARGET_NAME)
 endif
 
-PACKAGE_DIR:=$(BIN_DIR)/packages
+  PACKAGE_DIR:=$(BIN_DIR)/packages
 BUILD_DIR:=$(BUILD_DIR_BASE)/$(TARGET_DIR_NAME)
 STAGING_DIR:=$(TOPDIR)/staging_dir/$(TARGET_DIR_NAME)
 BUILD_DIR_TOOLCHAIN:=$(BUILD_DIR_BASE)/$(TOOLCHAIN_DIR_NAME)
@@ -263,7 +263,7 @@ else
   DISABLE_IPV6:=--disable-ipv6
 endif
 
-TAR_OPTIONS:=-xf -
+  TAR_OPTIONS:=-xf -
 
 ifeq ($(CONFIG_BUILD_LOG),y)
   BUILD_LOG:=1

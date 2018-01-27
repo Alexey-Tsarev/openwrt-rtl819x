@@ -24,10 +24,6 @@
 		status = "okay";
 	};
 
-	wmac@480000 {
-		ralink,mtd-eeprom = <&factory 0>;
-	};
-
 	pci@10140000 {
 		status = "okay";
 
@@ -58,7 +54,7 @@
 			read-only;
 		};
 
-		factory: partition@40000 {
+		partition@40000 {
 			reg = <0x00040000 0x00010000>;
 			label = "factory";
 			read-only;

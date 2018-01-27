@@ -13,12 +13,13 @@ FEATURES:=mips16
 CPU_TYPE=34kc
 SUBTARGETS:=generic nand mikrotik
 
-KERNEL_PATCHVER:=3.10
+LINUX_VERSION:=3.10.24
 
 include $(INCLUDE_DIR)/target.mk
 
 DEFAULT_PACKAGES += \
-	kmod-gpio-button-hotplug swconfig \
+	kmod-leds-gpio kmod-gpio-button-hotplug swconfig \
+	kmod-ledtrig-default-on kmod-ledtrig-timer kmod-ledtrig-netdev \
 	kmod-ath9k wpad-mini uboot-envtools
 
 $(eval $(call BuildTarget))

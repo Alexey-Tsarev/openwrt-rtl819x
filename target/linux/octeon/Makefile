@@ -6,15 +6,15 @@
 #
 include $(TOPDIR)/rules.mk
 
-ARCH:=mips64
+ARCH:=mips
 BOARD:=octeon
 BOARDNAME:=Cavium Networks Octeon
-FEATURES:=squashfs jffs2 ext4 pci usb
+FEATURES:=squashfs jffs2 pci usb
 CPU_TYPE:=octeon
-CPU_CFLAGS_octeon:=-march=octeon -mabi=64
+CPU_CFLAGS_octeon:=-march=octeon
 MAINTAINER:=John Crispin <blogic@openwrt.org>
 
-KERNEL_PATCHVER:=3.10
+LINUX_VERSION:=3.10.24
 
 include $(INCLUDE_DIR)/target.mk
 

@@ -12,9 +12,9 @@ BOARDNAME:=Cavium Networks Econa CNS3xxx
 FEATURES:=squashfs fpu gpio pcie usb usbgadget
 CPU_TYPE:=mpcore
 CPU_SUBTYPE:=vfp
-MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+MAINTAINER:=Imre Kaloz <kaloz@openwrt.org>
 
-KERNEL_PATCHVER:=3.10
+LINUX_VERSION:=3.8.13
 
 include $(INCLUDE_DIR)/target.mk
 
@@ -23,7 +23,7 @@ define Target/Description
 	eg. the Gateworks Laguna family
 endef
 
-KERNELNAME:="zImage"
+KERNELNAME:="zImage uImage"
 
 DEFAULT_PACKAGES += kmod-ath9k kmod-usb2 wpad-mini
 

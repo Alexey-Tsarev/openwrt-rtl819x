@@ -12,7 +12,7 @@ define Profile/DSMG600RevA
 	kmod-scsi-core \
 	kmod-ata-core kmod-ata-artop \
 	kmod-usb-core kmod-usb-uhci kmod-usb2 kmod-usb-storage \
-	kmod-fs-ext4
+	kmod-fs-ext2 kmod-fs-ext3
 endef
 
 define Profile/DSMG600RevA/Description
