@@ -330,7 +330,7 @@
 		};
 	};
 
-	usbphy {
+	ubsphy {
 		compatible = "ralink,rt3xxx-usbphy";
 
 		resets = <&rstctrl 22 &rstctrl 25>;

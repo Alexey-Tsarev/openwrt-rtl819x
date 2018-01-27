@@ -30,6 +30,9 @@
 #include "crc32.h"
 #include "mtd.h"
 
+#include <sys/ioctl.h>
+#include <mtd/mtd-user.h>
+
 #define PAD(x) (((x)+3)&~3)
 
 #if BYTE_ORDER == BIG_ENDIAN
@@ -50,6 +53,9 @@ static void prep_eraseblock(void);
 
 static void pad(int size)
 {
+	unsigned char oobbuf[64];
+    struct mtd_oob_buf oob; 
+
 	if ((ofs % size == 0) && (ofs < erasesize))
 		return;
 
@@ -69,6 +75,21 @@ static void pad(int size)
 			lseek(outfd, erasesize, SEEK_CUR);
 		}
 		mtd_erase_block(outfd, mtdofs);
+
+		//add cleanmarker after write one block 
+		if (mtdtype == MTD_NANDFLASH){
+			oob.start = mtdofs;
+			oob.length = sizeof(CLEANMARKER) - 1;
+	        oob.ptr = oobbuf;
+			
+	        memset(oobbuf, 0xff, sizeof(oobbuf));
+	        memcpy(oobbuf,CLEANMARKER,sizeof(CLEANMARKER) - 1);
+	        if (ioctl(outfd, MEMWRITEOOB, &oob) != 0) {
+				fprintf(stderr, "ioctl(MEMREADOOB)");
+				return;
+	        }
+        }
+        
 		write(outfd, buf, erasesize);
 		mtdofs += erasesize;
 	}
@@ -94,7 +115,9 @@ static void prep_eraseblock(void)
 	if (ofs > 0)
 		return;
 
-	add_data(CLEANMARKER, sizeof(CLEANMARKER) - 1);
+	// nand flash donot add cleanmarker here
+	if (mtdtype != MTD_NANDFLASH)
+		add_data(CLEANMARKER, sizeof(CLEANMARKER) - 1);
 }
 
 static int add_dirent(const char *name, const char type, int parent)

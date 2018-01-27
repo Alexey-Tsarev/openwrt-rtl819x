@@ -1,17 +1,7 @@
-. /lib/functions/lantiq.sh
-
 PART_NAME=firmware
 
 platform_check_image() {
-	[ "$#" -gt 1 ] && return 1
-	local board=$(lantiq_board_name)
-
-	case "$board" in
-		BTHOMEHUBV2B )
-			nand_do_platform_check $board $1
-			return $?;
-			;;
-	esac
+	[ "$ARGC" -gt 1 ] && return 1
 
 	case "$(get_magic_word "$1")" in
 		# uImage

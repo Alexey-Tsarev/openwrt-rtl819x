@@ -174,7 +174,6 @@ static void __init om2p_lc_setup(void)
 }
 
 MIPS_MACHINE(ATH79_MACH_OM2P_LC, "OM2P-LC", "OpenMesh OM2P LC", om2p_lc_setup);
-MIPS_MACHINE(ATH79_MACH_OM2Pv2, "OM2Pv2", "OpenMesh OM2Pv2", om2p_lc_setup);
 
 static void __init om2p_hs_setup(void)
 {
@@ -222,4 +221,3 @@ static void __init om2p_hs_setup(void)
 }
 
 MIPS_MACHINE(ATH79_MACH_OM2P_HS, "OM2P-HS", "OpenMesh OM2P HS", om2p_hs_setup);
-MIPS_MACHINE(ATH79_MACH_OM2P_HSv2, "OM2P-HSv2", "OpenMesh OM2P HSv2", om2p_hs_setup);

@@ -71,8 +71,7 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <0>;
-				mtd-mac-address = <&ath9k_cal 0xf100>;
-				lantiq,switch;
+				mac-address = [ 00 11 22 33 44 55 ];
 
 				ethernet@0 {
 					compatible = "lantiq,xrx200-pdi-port";
@@ -168,13 +167,8 @@
 			};
 
 			partition@20000 {
-				reg = <0x20000 0x6a0000>;
+				reg = <0x20000 0x7a0000>;
 				label = "firmware";
-			};
-
-			partition@6c0000 {
-				reg = <0x6c0000 0x100000>;
-				label = "dsl_fw";
 			};
 
 			partition@7c0000 {
@@ -194,9 +188,7 @@
 	ath9k_eep {
 		compatible = "ath9k,eeprom";
 		ath,eep-flash = <&ath9k_cal 0x21000>;
-		ath,mac-offset = <0xf100>;
-		ath,mac-increment;
-		ath,led-pin = <0>;
+		ath,pci-slot = <0>;
 	};
 
 	gpio-keys-polled {

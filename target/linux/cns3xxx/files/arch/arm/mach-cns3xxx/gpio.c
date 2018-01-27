@@ -11,11 +11,9 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
-#include <linux/irqchip/chained_irq.h>
 #include <linux/io.h>
 #include <linux/gpio.h>
 #include <linux/irq.h>
-#include <linux/irqdomain.h>
 
 #include <asm/mach/irq.h>
 
@@ -46,9 +44,9 @@
 
 struct cns3xxx_gpio_chip {
 	struct gpio_chip    chip;
-	struct irq_domain   *domain;
 	spinlock_t          lock;
 	void __iomem        *base;
+	int                 secondary_irq_base;
 };
 
 static struct cns3xxx_gpio_chip cns3xxx_gpio_chips[2];
@@ -128,7 +126,7 @@ static int cns3xxx_gpio_to_irq(struct gpio_chip *chip, unsigned pin)
 	struct cns3xxx_gpio_chip *cchip =
 		container_of(chip, struct cns3xxx_gpio_chip, chip);
 
-	return irq_find_mapping(cchip->domain, pin);
+	return cchip->secondary_irq_base + pin;
 }
 
 
@@ -143,6 +141,8 @@ static void cns3xxx_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 {
 	struct cns3xxx_gpio_chip *cchip = irq_get_handler_data(irq);
 	struct irq_chip *chip = irq_get_chip(irq);
+	struct irq_chip_generic *gc = irq_desc_get_chip_data(desc);
+	struct irq_chip_type *ct = gc->chip_types;
 	u16 i;
 	u32 reg;
 
@@ -153,7 +153,7 @@ static void cns3xxx_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 	for (i = 0; i < 32; i++) {
 		if (reg & (1 << i)) {
 			/* let the generic IRQ layer handle an interrupt */
-			generic_handle_irq(irq_find_mapping(cchip->domain, i));
+			generic_handle_irq(cchip->secondary_irq_base + i);
 		}
 	}
 
@@ -164,7 +164,7 @@ static int cns3xxx_gpio_irq_set_type(struct irq_data *d, u32 irqtype)
 {
 	struct irq_chip_generic *gc = irq_data_get_irq_chip_data(d);
 	struct cns3xxx_gpio_chip *cchip = gc->private;
-	u32 gpio = d->hwirq;
+	u32 gpio = d->irq - cchip->secondary_irq_base;
 	unsigned long flags;
 	u32 method, edges, type;
 
@@ -225,7 +225,6 @@ void __init cns3xxx_gpio_init(int gpio_base, int ngpio,
 	struct irq_chip_generic *gc;
 	struct irq_chip_type *ct;
 	char gc_label[16];
-	int irq_base;
 
 	if (cns3xxx_gpio_chip_count == ARRAY_SIZE(cns3xxx_gpio_chips))
 		return;
@@ -245,6 +244,7 @@ void __init cns3xxx_gpio_init(int gpio_base, int ngpio,
 	cchip->chip.can_sleep = 0;
 	spin_lock_init(&cchip->lock);
 	cchip->base = (void __iomem *)base;
+	cchip->secondary_irq_base = secondary_irq_base;
 
 	BUG_ON(gpiochip_add(&cchip->chip) < 0);
 	cns3xxx_gpio_chip_count++;
@@ -252,22 +252,11 @@ void __init cns3xxx_gpio_init(int gpio_base, int ngpio,
 	/* clear GPIO interrupts */
 	__raw_writel(0xffff, cchip->base + GPIO_INTERRUPT_CLEAR);
 
-	irq_base = irq_alloc_descs(-1, secondary_irq_base, ngpio,
-		numa_node_id());
-	if (irq_base < 0)
-		goto out_irqdesc_free;
-
-	cchip->domain = irq_domain_add_legacy(NULL, ngpio, irq_base, 0,
-		&irq_domain_simple_ops, NULL);
-	if (!cchip->domain)
-		goto out_irqdesc_free;
-
 	/*
 	 * IRQ chip init
 	 */
-	gc = irq_alloc_generic_chip("cns3xxx_gpio_irq", 1, irq_base,
+	gc = irq_alloc_generic_chip("cns3xxx_gpio_irq", 1, secondary_irq_base,
 		cchip->base, handle_edge_irq);
-
 	gc->private = cchip;
 
 	ct = gc->chip_types;
@@ -282,11 +271,7 @@ void __init cns3xxx_gpio_init(int gpio_base, int ngpio,
 
 	irq_setup_generic_chip(gc, IRQ_MSK(ngpio), IRQ_GC_INIT_MASK_CACHE,
 		IRQ_NOREQUEST, 0);
+
 	irq_set_chained_handler(irq, cns3xxx_gpio_irq_handler);
 	irq_set_handler_data(irq, cchip);
-
-	return;
-
-out_irqdesc_free:
-	irq_free_descs(irq_base, ngpio);
 }

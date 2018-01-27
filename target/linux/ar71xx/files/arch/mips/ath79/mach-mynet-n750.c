@@ -12,7 +12,6 @@
 #include <linux/pci.h>
 #include <linux/phy.h>
 #include <linux/gpio.h>
-#include <linux/delay.h>
 #include <linux/platform_device.h>
 #include <linux/ath9k_platform.h>
 #include <linux/ar8216_platform.h>
@@ -98,19 +97,6 @@ static struct gpio_keys_button mynet_n750_gpio_keys[] __initdata = {
 	},
 };
 
-static const struct ar8327_led_info mynet_n750_leds_ar8327[] __initconst = {
-	AR8327_LED_INFO(PHY0_0, HW, "wd:green:lan1"),
-	AR8327_LED_INFO(PHY1_0, HW, "wd:green:lan2"),
-	AR8327_LED_INFO(PHY2_0, HW, "wd:green:lan3"),
-	AR8327_LED_INFO(PHY3_0, HW, "wd:green:lan4"),
-	AR8327_LED_INFO(PHY4_0, HW, "wd:green:wan"),
-	AR8327_LED_INFO(PHY0_1, HW, "wd:yellow:lan1"),
-	AR8327_LED_INFO(PHY1_1, HW, "wd:yellow:lan2"),
-	AR8327_LED_INFO(PHY2_1, HW, "wd:yellow:lan3"),
-	AR8327_LED_INFO(PHY3_1, HW, "wd:yellow:lan4"),
-	AR8327_LED_INFO(PHY4_1, HW, "wd:yellow:wan"),
-};
-
 static struct ar8327_pad_cfg mynet_n750_ar8327_pad0_cfg = {
 	.mode = AR8327_PAD_MAC_RGMII,
 	.txclk_delay_en = true,
@@ -120,10 +106,10 @@ static struct ar8327_pad_cfg mynet_n750_ar8327_pad0_cfg = {
 };
 
 static struct ar8327_led_cfg mynet_n750_ar8327_led_cfg = {
-	.led_ctrl0 = 0xcc35cc35,
-	.led_ctrl1 = 0xca35ca35,
-	.led_ctrl2 = 0xc935c935,
-	.led_ctrl3 = 0x03ffff00,
+	.led_ctrl0 = 0xc737c737,
+	.led_ctrl1 = 0x00000000,
+	.led_ctrl2 = 0x00000000,
+	.led_ctrl3 = 0x0030c300,
 	.open_drain = false,
 };
 
@@ -137,8 +123,6 @@ static struct ar8327_platform_data mynet_n750_ar8327_data = {
 		.rxpause = 1,
 	},
 	.led_cfg = &mynet_n750_ar8327_led_cfg,
-	.num_leds = ARRAY_SIZE(mynet_n750_leds_ar8327),
-	.leds = mynet_n750_leds_ar8327,
 };
 
 static struct mdio_board_info mynet_n750_mdio0_info[] = {
@@ -160,23 +144,6 @@ static void mynet_n750_get_mac(const char *name, char *mac)
 		pr_err("no MAC address found for %s\n", name);
 }
 
-/*
- * The bootloader on this board powers down all PHYs on the switch
- * before booting the kernel. We bring all PHYs back up so that they are
- * discoverable by the mdio bus scan and the switch is detected
- * correctly.
- */
-static void mynet_n750_mdio_fixup(struct mii_bus *bus)
-{
-	int i;
-
-	for (i = 0; i < 5; i++)
-		bus->write(bus, i, MII_BMCR,
-			   (BMCR_RESET | BMCR_ANENABLE | BMCR_SPEED1000));
-
-	mdelay(1000);
-}
-
 static void __init mynet_n750_setup(void)
 {
 	u8 *art = (u8 *) KSEG1ADDR(0x1fff0000);
@@ -193,8 +160,12 @@ static void __init mynet_n750_setup(void)
 	 * Taken from GPL bootloader source:
 	 *   board/ar7240/db12x/alpha_gpio.c
 	 */
-	ath79_wmac_set_ext_lna_gpio(0, MYNET_N750_GPIO_EXTERNAL_LNA0);
-	ath79_wmac_set_ext_lna_gpio(1, MYNET_N750_GPIO_EXTERNAL_LNA1);
+	gpio_request_one(MYNET_N750_GPIO_EXTERNAL_LNA0,
+			 GPIOF_OUT_INIT_LOW | GPIOF_EXPORT_DIR_FIXED,
+			 "External LNA0");
+	gpio_request_one(MYNET_N750_GPIO_EXTERNAL_LNA1,
+			 GPIOF_OUT_INIT_LOW | GPIOF_EXPORT_DIR_FIXED,
+			 "External LNA1");
 
 	mynet_n750_get_mac("wlan24mac=", tmpmac);
 	ath79_register_wmac(art + MYNET_N750_WMAC_CALDATA_OFFSET, tmpmac);
@@ -207,7 +178,6 @@ static void __init mynet_n750_setup(void)
 	mdiobus_register_board_info(mynet_n750_mdio0_info,
 				    ARRAY_SIZE(mynet_n750_mdio0_info));
 
-	ath79_mdio0_data.reset = mynet_n750_mdio_fixup;
 	ath79_register_mdio(0, 0x0);
 
 	mynet_n750_get_mac("lanmac=", ath79_eth0_data.mac_addr);

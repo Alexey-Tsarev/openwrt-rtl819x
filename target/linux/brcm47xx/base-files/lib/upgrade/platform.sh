@@ -1,7 +1,7 @@
 PART_NAME=firmware
 
 platform_check_image() {
-	[ "$#" -gt 1 ] && return 1
+	[ "$ARGC" -gt 1 ] && return 1
 
 	case "$(get_magic_word "$1")" in
 		# .trx files
