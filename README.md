@@ -32,7 +32,10 @@ yum install subversion binutils bzip2 gcc gcc-c++ gawk gettext flex ncurses-deve
 ~~~
 ./scripts/feeds update -a
 ./scripts/feeds install -a
+
+cp config/.config .config # this is a "default" config. Use it as a start point
 make menuconfig
+
 make download V=99
 make V=99
 ~~~
